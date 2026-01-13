@@ -1,5 +1,5 @@
 # 📊 Ratio-Fin: Dashboard Analisis Keuangan
-![Preview Dashboard](./public/dashboard-preview.png)
+![Dashboard Preview](public/nama-gambar.png)
 
 Ratio-Fin adalah aplikasi dashboard keuangan modern yang membantu pengguna menghitung dan memvisualisasikan rasio profitabilitas dan likuiditas secara instan.
 
