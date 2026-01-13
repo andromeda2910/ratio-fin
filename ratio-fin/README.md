@@ -16,4 +16,4 @@ Ratio-Fin adalah aplikasi dashboard keuangan modern yang membantu pengguna mengh
 * **Deployment:** GitHub (Source Control)
 
 ---
-*Created by Rosse*
+*Created by Rosse*.
