@@ -36,7 +36,7 @@ const InfoTooltip = ({ info }) => {
   );
 };
 
-const InputField = ({ label, info, value, onChange, type = "text", error, isYear = false }) => (
+const InputField = ({ label, info, value, onChange, type = "text", error, isYear = false, placeholder }) => (
   <div className="flex flex-col gap-1.5 mb-5 group">
     <div className="flex items-center gap-2">
       <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">
@@ -60,7 +60,7 @@ const InputField = ({ label, info, value, onChange, type = "text", error, isYear
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={`w-full p-4 ${isYear ? 'text-center px-10' : ''} border-2 ${error ? 'border-red-100 bg-red-50/50' : 'border-slate-100 bg-slate-50/50'} rounded-2xl outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 font-bold text-slate-700 transition-all text-sm md:text-base`}
-        placeholder="0"
+        placeholder={placeholder || (isYear ? "2026" : "0")}
       />
 
       {isYear && (
