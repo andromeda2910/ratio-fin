@@ -167,9 +167,27 @@ export default function App() {
             </div>
             
             <div className="p-6 md:p-8 space-y-4 bg-white max-h-[80vh] overflow-y-auto">
-              <ResultRow label="Current Ratio" desc="Likuiditas: Jaminan aset lancar terhadap utang." value={results.currentRatio} suffix="x" status={getStatus('currentRatio', results.currentRatio)} />
-              <ResultRow label="Net Profit Margin" desc="Profitabilitas: Efisiensi laba dari penjualan." value={results.npm} suffix="%" status={getStatus('npm', results.npm)} />
-              <ResultRow label="Return on Equity" desc="Efisiensi: Pengembalian laba atas modal." value={results.roe} suffix="%" status={getStatus('roe', results.roe)} />
+              <ResultRow 
+    label="Current Ratio" 
+    type="currentRatio" // GANTI desc JADI type
+    value={results.currentRatio} 
+    suffix="x" 
+    status={getStatus('currentRatio', results.currentRatio)} 
+  />
+  <ResultRow 
+    label="Net Profit Margin" 
+    type="npm" // GANTI desc JADI type
+    value={results.npm} 
+    suffix="%" 
+    status={getStatus('npm', results.npm)} 
+  />
+  <ResultRow 
+    label="Return on Equity" 
+    type="roe" // GANTI desc JADI type
+    value={results.roe} 
+    suffix="%" 
+    status={getStatus('roe', results.roe)} 
+  />
               
               <button onClick={() => setShowModal(false)} className="w-full py-4 bg-slate-50 text-slate-500 font-bold rounded-2xl hover:bg-slate-100 transition-all mt-2 border border-slate-100 uppercase text-[10px] tracking-widest">
                 Tutup Analisis
