@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2, AlertTriangle, User, RotateCcw } from 'lucide-react';
-import { calculateRatios, getStatus, formatRibuan } from './calculations';
+import { calculateRatios, getStatus, formatRibuan, getInsight } from './calculations';
 
 const InfoTooltip = ({ info }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -182,23 +182,30 @@ export default function App() {
   );
 }
 
-const ResultRow = ({ label, desc, value, suffix, status }) => {
+const ResultRow = ({ label, type, value, suffix, status }) => {
   const isPositive = status === 'Sehat' || status === 'Efisien' || status === 'Sangat Baik';
+  
+  // Ambil insight dinamis berdasarkan tipe rasio dan nilainya
+  const insightText = getInsight(type, value);
+
   return (
     <div className="p-4 md:p-5 bg-white rounded-2xl border border-slate-100">
       <div className="flex justify-between items-start mb-3">
         <div>
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-          <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">{value}<span className="text-base text-slate-400 ml-0.5">{suffix}</span></p>
+          <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">
+            {value}<span className="text-base text-slate-400 ml-0.5">{suffix}</span>
+          </p>
         </div>
         <div className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase ${isPositive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
           {isPositive ? <CheckCircle2 size={10}/> : <AlertTriangle size={10}/>}
           {status}
         </div>
       </div>
-      <p className="text-[10px] text-slate-500 leading-relaxed bg-slate-50 p-2.5 rounded-xl border border-slate-100/50 italic">
-        ℹ️ {desc}
+      {/* Box Insight Dinamis */}
+      <p className="text-[10px] text-slate-600 leading-relaxed bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
+        <span className="font-bold text-blue-700">💡 Insight:</span> {insightText}
       </p>
     </div>
   );
-};
+};;
