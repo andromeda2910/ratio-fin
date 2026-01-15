@@ -1,6 +1,6 @@
 // Fungsi untuk menghitung rasio keuangan
 export const calculateRatios = (data) => {
-  // Kita hapus titiknya dulu sebelum diubah ke angka (float)
+  // Menghapus titik agar bisa dihitung sebagai angka biasa
   const parseClean = (val) => parseFloat(String(val).replace(/\./g, '')) || 0;
 
   const laba = parseClean(data.labaBersih);
@@ -24,9 +24,9 @@ export const getStatus = (key, value) => {
   return '-';
 };
 
-// Fungsi format angka dengan titik (untuk tampilan input)
+// Fungsi format ribuan dengan titik
 export const formatRibuan = (val) => {
   if (!val) return "";
-  const clean = String(val).replace(/\D/g, ""); // ambil angka saja
+  const clean = String(val).replace(/\D/g, ""); 
   return new Intl.NumberFormat('id-ID').format(clean);
 };
