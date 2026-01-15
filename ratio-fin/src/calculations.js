@@ -1,9 +1,13 @@
+// Fungsi untuk menghitung rasio keuangan
 export const calculateRatios = (data) => {
-  const laba = parseFloat(data.labaBersih) || 0;
-  const asetLancar = parseFloat(data.asetLancar) || 0;
-  const utangLancar = parseFloat(data.utangLancar) || 0;
-  const pendapatan = parseFloat(data.pendapatan) || 0;
-  const ekuitas = parseFloat(data.totalEkuitas) || 0;
+  // Kita hapus titiknya dulu sebelum diubah ke angka (float)
+  const parseClean = (val) => parseFloat(String(val).replace(/\./g, '')) || 0;
+
+  const laba = parseClean(data.labaBersih);
+  const asetLancar = parseClean(data.asetLancar);
+  const utangLancar = parseClean(data.utangLancar);
+  const pendapatan = parseClean(data.pendapatan);
+  const ekuitas = parseClean(data.totalEkuitas);
 
   return {
     currentRatio: utangLancar !== 0 ? (asetLancar / utangLancar).toFixed(2) : 0,
@@ -20,8 +24,9 @@ export const getStatus = (key, value) => {
   return '-';
 };
 
-// Fungsi Baru: Format angka ke Rupiah/Ribuan
-export const formatNumber = (num) => {
-  if (!num) return "";
-  return new Intl.NumberFormat('id-ID').format(num);
+// Fungsi format angka dengan titik (untuk tampilan input)
+export const formatRibuan = (val) => {
+  if (!val) return "";
+  const clean = String(val).replace(/\D/g, ""); // ambil angka saja
+  return new Intl.NumberFormat('id-ID').format(clean);
 };
