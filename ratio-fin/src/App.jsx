@@ -63,20 +63,31 @@ export default function App() {
   const [results, setResults] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // FUNGSI PDF TANPA 'err' UNUSED
+  // FUNGSI PDF VERSI SUPER STABIL
   const downloadPDF = async () => {
     const reportElement = document.getElementById('report-to-print');
     if (!reportElement) return alert("Konten tidak ditemukan!");
+    
     try {
-      const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true });
+      // Tambahkan delay 500ms agar rendering selesai sempurna
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const canvas = await html2canvas(reportElement, { 
+        scale: 2, 
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: "#ffffff"
+      });
+      
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`RatioFin_${formData.namaPT}_${formData.tahun}.pdf`);
     } catch { 
-      alert("Gagal membuat PDF. Coba lagi!"); 
+      alert("Gagal membuat PDF. Coba refresh halaman!"); 
     }
   };
 
@@ -96,7 +107,7 @@ export default function App() {
     <div className="min-h-screen bg-[#F8FAFC] py-8 md:py-12 px-4 selection:bg-blue-100">
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-8 px-2">
-          {/* MENGGUNAKAN bg-linear SESUAI SARAN */}
+          {/* PERBAIKAN CLASS GRADASI */}
           <div className="w-10 h-10 bg-linear-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200"><Calculator size={20} /></div>
           <div><h1 className="text-lg font-black text-slate-800 tracking-tight">RatioFin</h1><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Financial Analyzer</p></div>
         </div>
@@ -112,13 +123,12 @@ export default function App() {
             <InputField label="Pendapatan (Rp.)" info="Total omzet." value={formData.pendapatan} onChange={(v) => handleInputChange('pendapatan', v)} error={errors.pendapatan} />
             <InputField label="Total Ekuitas (Rp.)" info="Modal bersih." value={formData.totalEkuitas} onChange={(v) => handleInputChange('totalEkuitas', v)} error={errors.totalEkuitas} />
           </div>
-          {/* MENGGUNAKAN bg-linear SESUAI SARAN */}
           <button onClick={() => { if(validate()) { setResults(calculateRatios(formData)); setShowModal(true); } }} className="w-full py-5 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 mt-4 flex items-center justify-center gap-3 uppercase text-xs"> <TrendingUp size={18} /> Analisis Sekarang </button>
         </div>
       </div>
 
       {showModal && results && (
-        /* MENGGUNAKAN z-100 SESUAI SARAN */
+        /* PERBAIKAN Z-INDEX */
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-100 overflow-y-auto">
           <div className="bg-white w-full max-w-lg rounded-4xl shadow-2xl overflow-hidden my-auto">
             <div id="report-to-print" className="bg-white">
