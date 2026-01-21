@@ -96,14 +96,32 @@ export default function App() {
 
   // FUNGSI DOWNLOAD PDF
   const downloadPDF = async () => {
-    const element = document.getElementById('report-content');
-    const canvas = await html2canvas(element, { scale: 3, useCORS: true });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`RatioFin_${formData.namaPT}_${formData.tahun}.pdf`);
+    console.log("Tombol download diklik!"); // Ini untuk ngetes di Console browser
+    try {
+      const element = document.getElementById('report-content');
+      if (!element) {
+        alert("Waduh, konten laporan tidak ditemukan!");
+        return;
+      }
+      
+      const canvas = await html2canvas(element, { 
+        scale: 2,
+        useCORS: true,
+        logging: true 
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`Laporan_RatioFin_${formData.namaPT}.pdf`);
+      console.log("PDF berhasil dibuat!");
+    } catch (error) {
+      console.error("Gagal cetak PDF:", error);
+      alert("Gagal mendownload PDF. Coba cek terminal!");
+    }
   };
 
   const handleReset = () => {
