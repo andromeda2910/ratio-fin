@@ -69,25 +69,26 @@ export default function App() {
     if (!reportElement) return alert("Konten tidak ditemukan!");
     
     try {
-      // Tambahkan delay 500ms agar rendering selesai sempurna
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Tambahkan delay sedikit lebih lama (700ms) agar elemen modal benar-benar stabil
+      await new Promise(resolve => setTimeout(resolve, 700));
       
       const canvas = await html2canvas(reportElement, { 
         scale: 2, 
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: "#ffffff"
+        useCORS: true, // Cukup gunakan ini untuk menangani gambar/font eksternal
+        backgroundColor: "#ffffff",
+        logging: false
       });
       
-      const imgData = canvas.toDataURL('image/png');
+      const imgData = canvas.toDataURL('image/png', 1.0);
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`RatioFin_${formData.namaPT}_${formData.tahun}.pdf`);
-    } catch { 
-      alert("Gagal membuat PDF. Coba refresh halaman!"); 
+      pdf.save(`RatioFin_${formData.namaPT || 'Laporan'}_${formData.tahun}.pdf`);
+    } catch (error) { 
+      console.error("PDF Error:", error); // Munculkan error di console untuk debug
+      alert("Gagal membuat PDF. Pastikan koneksi stabil dan coba lagi!"); 
     }
   };
 
