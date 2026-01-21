@@ -87,32 +87,32 @@ export default function App() {
   };
 
   const downloadPDF = async () => {
-    const reportElement = document.getElementById('report-to-print');
-    if (!reportElement) return;
+  const reportElement = document.getElementById('report-to-print');
+  if (!reportElement) return; // Jadinya aman kalau elemen nggak ketemu
+  
+  try {
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Nunggu modal stabil
     
-    try {
-      // Jeda 1 detik agar modal stabil
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      const canvas = await html2canvas(reportElement, { 
-        scale: 1.5, // Skala sedang agar tidak membebani memori
-        useCORS: true, 
-        backgroundColor: "#ffffff",
-        logging: false 
-      });
-      
-      const imgData = canvas.toDataURL('image/png', 1.0);
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`RatioFin_${formData.namaPT || 'Laporan'}_${formData.tahun}.pdf`);
-    } catch (err) {
-      console.error("PDF Error:", err);
-      alert("Gagal membuat PDF. Coba refresh atau gunakan Google Chrome!");
-    }
-  };
+    const canvas = await html2canvas(reportElement, { 
+      scale: 2, // Kita naikkan ke 2 supaya hasil print-nya nggak pecah/blur
+      useCORS: true, 
+      backgroundColor: "#ffffff", // Memaksa kertas jadi putih bersih
+    });
+    
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    // Rumus agar gambar pas di lebar kertas A4
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`Laporan_${formData.namaPT}.pdf`);
+  } catch (err) {
+  console.error("PDF Error:", err); // <-- Kamu mungkin lupa nulis ini
+  alert("Gagal membuat PDF. Coba refresh atau gunakan Google Chrome!");
+}
+};
 
   const validate = () => {
     let newErrors = {};
