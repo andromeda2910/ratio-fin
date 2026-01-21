@@ -64,19 +64,26 @@ export default function App() {
   const [showModal, setShowModal] = useState(false);
 
   // FUNGSI PDF VERSI SUPER STABIL
-  const downloadPDF = async () => {
+ const downloadPDF = async () => {
     const reportElement = document.getElementById('report-to-print');
     if (!reportElement) return alert("Konten tidak ditemukan!");
     
     try {
-      // Tambahkan delay sedikit lebih lama (700ms) agar elemen modal benar-benar stabil
-      await new Promise(resolve => setTimeout(resolve, 700));
+      // Tunggu modal stabil
+      await new Promise(resolve => setTimeout(resolve, 800));
       
       const canvas = await html2canvas(reportElement, { 
         scale: 2, 
-        useCORS: true, // Cukup gunakan ini untuk menangani gambar/font eksternal
-        backgroundColor: "#ffffff",
-        logging: false
+        useCORS: true,
+        backgroundColor: "#ffffff", // Paksa background putih standar
+        // Abaikan warna oklch yang bikin crash
+        onclone: (clonedDoc) => {
+          const el = clonedDoc.getElementById('report-to-print');
+          if (el) {
+            // Paksa warna header agar tidak pakai oklch saat difoto
+            el.querySelector('.bg-slate-900').style.backgroundColor = '#0f172a';
+          }
+        }
       });
       
       const imgData = canvas.toDataURL('image/png', 1.0);
@@ -85,10 +92,10 @@ export default function App() {
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`RatioFin_${formData.namaPT || 'Laporan'}_${formData.tahun}.pdf`);
-    } catch (error) { 
-      console.error("PDF Error:", error); // Munculkan error di console untuk debug
-      alert("Gagal membuat PDF. Pastikan koneksi stabil dan coba lagi!"); 
+      pdf.save(`RatioFin_${formData.namaPT || 'Report'}.pdf`);
+    } catch (err) { 
+      console.error("PDF Error Detail:", err);
+      alert("Gagal membuat PDF karena masalah format warna browser. Coba refresh sekali lagi!"); 
     }
   };
 
