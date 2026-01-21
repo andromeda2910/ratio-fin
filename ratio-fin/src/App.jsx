@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2, AlertTriangle, RotateCcw, Download } from 'lucide-react';
 // Pastikan semua fungsi ini ada di file calculations.js kamu
 import { calculateRatios, getStatus, formatRibuan, getInsight, calculateHealthScore } from './calculations';
-import html2pdf from 'html2pdf.js';
+
 
 const InfoTooltip = ({ info }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -86,23 +86,8 @@ export default function App() {
   };
 
   const downloadPDF = () => {
-  const element = document.getElementById('report-to-print');
-  if (!element) return;
-
-  const opt = {
-    margin: 10,
-    filename: `Laporan_${formData.namaPT || 'Keuangan'}.pdf`,
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { 
-      scale: 2, 
-      useCORS: true,
-      backgroundColor: '#ffffff' 
-    },
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
-
-  // Gunakan versi promise supaya tidak macet
-  html2pdf().from(element).set(opt).save();
+  // Langsung panggil perintah cetak bawaan browser
+  window.print();
 };
 
   const validate = () => {

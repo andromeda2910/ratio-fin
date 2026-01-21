@@ -1,1 +1,35 @@
 @import "tailwindcss";
+
+@media print {
+  /* Sembunyikan semua elemen di halaman */
+  body * {
+    visibility: hidden;
+  }
+  
+  /* Hanya tampilkan area laporan */
+  #report-to-print, #report-to-print * {
+    visibility: visible;
+  }
+
+  /* Atur posisi laporan agar rapi di kertas */
+  #report-to-print {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 20px;
+    background-color: white !important;
+    border: none !important;
+  }
+
+  /* Hilangkan tombol-tombol dan UI modal agar tidak ikut terprint */
+  button, .lucide-x {
+    display: none !important;
+  }
+
+  /* Hilangkan bayangan/shadow agar print lebih bersih */
+  .shadow-xl, .shadow-2xl {
+    box-shadow: none !important;
+  }
+}
