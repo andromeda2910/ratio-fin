@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2, AlertTriangle, RotateCcw, Download } from 'lucide-react';
 // Pastikan semua fungsi ini ada di file calculations.js kamu
 import { calculateRatios, getStatus, formatRibuan, getInsight, calculateHealthScore } from './calculations';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import html2pdf from 'html2pdf.js';
 
 const InfoTooltip = ({ info }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -86,33 +85,28 @@ export default function App() {
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
   };
 
-  const downloadPDF = async () => {
-  const reportElement = document.getElementById('report-to-print');
-  if (!reportElement) return; // Jadinya aman kalau elemen nggak ketemu
-  
-  try {
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Nunggu modal stabil
-    
-    const canvas = await html2canvas(reportElement, { 
-      scale: 2, // Kita naikkan ke 2 supaya hasil print-nya nggak pecah/blur
-      useCORS: true, 
-      backgroundColor: "#ffffff", // Memaksa kertas jadi putih bersih
-    });
-    
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    
-    // Rumus agar gambar pas di lebar kertas A4
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save(`Laporan_${formData.namaPT}.pdf`);
-  } catch (err) {
-  console.error("PDF Error:", err); // <-- Kamu mungkin lupa nulis ini
-  alert("Gagal membuat PDF. Coba refresh atau gunakan Google Chrome!");
-}
-};
+  const downloadPDF = () => {
+  const element = document.getElementById('report-to-print');
+  if (!element) return;
+
+  // Konfigurasi khusus untuk mengakali Tailwind v4
+  const opt = {
+    margin:       10,
+    filename:     `RatioFin_${formData.namaPT || 'Laporan'}.pdf`,
+    image:        { type: 'jpeg', quality: 0.98 },
+    html2canvas:  { 
+      scale: 2, 
+      useCORS: true,
+      // PENTING: Ini akan memaksa background putih dan mengabaikan error warna CSS
+      backgroundColor: '#ffffff',
+      logging: false
+    },
+    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  // Jalankan html2pdf
+  html2pdf().set(opt).from(element).save();
+};;
 
   const validate = () => {
     let newErrors = {};
