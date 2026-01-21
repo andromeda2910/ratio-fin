@@ -56,3 +56,18 @@ export const getInsight = (type, value) => {
   
   return "Data analisis tidak tersedia.";
 };
+
+export const calculateHealthScore = (ratios) => {
+  let score = 0;
+  // Bobot: Likuiditas (30), Profitabilitas (40), Efisiensi Modal (30)
+  if (ratios.currentRatio >= 1.5) score += 30;
+  else if (ratios.currentRatio >= 1.0) score += 15;
+
+  if (ratios.netProfitMargin >= 15) score += 40;
+  else if (ratios.netProfitMargin >= 5) score += 20;
+
+  if (ratios.returnOnEquity >= 15) score += 30;
+  else if (ratios.returnOnEquity >= 8) score += 15;
+
+  return score;
+};

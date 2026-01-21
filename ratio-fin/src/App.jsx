@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2, AlertTriangle, User, RotateCcw } from 'lucide-react';
-import { calculateRatios, getStatus, formatRibuan, getInsight } from './calculations';
+import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2, AlertTriangle, RotateCcw } from 'lucide-react';
+// Pastikan calculateHealthScore sudah kamu export di calculations.js
+import { calculateRatios, getStatus, formatRibuan, getInsight, calculateHealthScore } from './calculations';
 
 const InfoTooltip = ({ info }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -80,6 +81,31 @@ const InputField = ({ label, info, value, onChange, type = "text", error, isYear
   </div>
 );
 
+const ResultRow = ({ label, type, value, suffix, status }) => {
+  const isPositive = status === 'Sehat' || status === 'Efisien' || status === 'Sangat Baik';
+  const insightText = getInsight(type, value); //
+
+  return (
+    <div className="p-4 md:p-5 bg-white rounded-2xl border border-slate-100">
+      <div className="flex justify-between items-start mb-3">
+        <div>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+          <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">
+            {value}<span className="text-base text-slate-400 ml-0.5">{suffix}</span>
+          </p>
+        </div>
+        <div className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase ${isPositive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
+          {isPositive ? <CheckCircle2 size={10}/> : <AlertTriangle size={10}/>}
+          {status}
+        </div>
+      </div>
+      <p className="text-[10px] text-slate-600 leading-relaxed bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
+        <span className="font-bold text-blue-700">💡 Insight:</span> {insightText}
+      </p>
+    </div>
+  );
+};
+
 export default function App() {
   const [formData, setFormData] = useState({
     namaPT: '', tahun: '2026', labaBersih: '', asetLancar: '', utangLancar: '', pendapatan: '', totalEkuitas: ''
@@ -111,6 +137,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#F8FAFC] py-8 md:py-12 px-4 font-sans selection:bg-blue-100">
       <div className="max-w-2xl mx-auto">
+        {/* Header App */}
         <div className="flex justify-between items-center mb-8 px-2">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-linear-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -123,6 +150,7 @@ export default function App() {
           </div>
         </div>
 
+        {/* Input Card */}
         <div className="bg-white p-6 md:p-10 rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-50 relative overflow-hidden">
           <div className="flex justify-between items-start mb-8">
             <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Input Data</h2>
@@ -155,6 +183,7 @@ export default function App() {
         </div>
       </div>
 
+      {/* Modal Laporan */}
       {showModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-100 animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-lg rounded-4xl shadow-2xl overflow-hidden animate-in zoom-in slide-in-from-bottom-8 duration-500">
@@ -167,27 +196,35 @@ export default function App() {
             </div>
             
             <div className="p-6 md:p-8 space-y-4 bg-white max-h-[80vh] overflow-y-auto">
-              <ResultRow 
-    label="Current Ratio" 
-    type="currentRatio" // GANTI desc JADI type
-    value={results.currentRatio} 
-    suffix="x" 
-    status={getStatus('currentRatio', results.currentRatio)} 
-  />
-  <ResultRow 
-    label="Net Profit Margin" 
-    type="npm" // GANTI desc JADI type
-    value={results.npm} 
-    suffix="%" 
-    status={getStatus('npm', results.npm)} 
-  />
-  <ResultRow 
-    label="Return on Equity" 
-    type="roe" // GANTI desc JADI type
-    value={results.roe} 
-    suffix="%" 
-    status={getStatus('roe', results.roe)} 
-  />
+              
+              {/* --- DASHBOARD SKOR KESEHATAN (BARU) --- */}
+              {(() => {
+                const scoreValue = calculateHealthScore(results); 
+                const getScoreColor = (s) => {
+                  if (s >= 80) return "text-emerald-500";
+                  if (s >= 50) return "text-amber-500";
+                  return "text-red-500";
+                };
+
+                return (
+                  <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 text-center mb-6">
+                    <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Skor Kesehatan Finansial</h4>
+                    <div className={`text-6xl font-black tracking-tighter mb-2 ${getScoreColor(scoreValue)}`}>
+                      {scoreValue}<span className="text-xl text-slate-300">/100</span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium px-4 leading-relaxed">
+                      {scoreValue >= 80 ? "🔥 Kondisi sangat prima! Keuangan perusahaan sangat sehat dan stabil." : 
+                       scoreValue >= 50 ? "⚠️ Kondisi cukup stabil, namun beberapa rasio perlu diperhatikan lebih lanjut." : 
+                       "🚨 Perhatian! Perusahaan berada dalam risiko finansial yang cukup serius."}
+                    </p>
+                  </div>
+                );
+              })()}
+              
+              {/* Daftar Kartu Rasio */}
+              <ResultRow label="Current Ratio" type="currentRatio" value={results.currentRatio} suffix="x" status={getStatus('currentRatio', results.currentRatio)} />
+              <ResultRow label="Net Profit Margin" type="npm" value={results.npm} suffix="%" status={getStatus('npm', results.npm)} />
+              <ResultRow label="Return on Equity" type="roe" value={results.roe} suffix="%" status={getStatus('roe', results.roe)} />
               
               <button onClick={() => setShowModal(false)} className="w-full py-4 bg-slate-50 text-slate-500 font-bold rounded-2xl hover:bg-slate-100 transition-all mt-2 border border-slate-100 uppercase text-[10px] tracking-widest">
                 Tutup Analisis
@@ -199,31 +236,3 @@ export default function App() {
     </div>
   );
 }
-
-const ResultRow = ({ label, type, value, suffix, status }) => {
-  const isPositive = status === 'Sehat' || status === 'Efisien' || status === 'Sangat Baik';
-  
-  // Ambil insight dinamis berdasarkan tipe rasio dan nilainya
-  const insightText = getInsight(type, value);
-
-  return (
-    <div className="p-4 md:p-5 bg-white rounded-2xl border border-slate-100">
-      <div className="flex justify-between items-start mb-3">
-        <div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-          <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">
-            {value}<span className="text-base text-slate-400 ml-0.5">{suffix}</span>
-          </p>
-        </div>
-        <div className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase ${isPositive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-          {isPositive ? <CheckCircle2 size={10}/> : <AlertTriangle size={10}/>}
-          {status}
-        </div>
-      </div>
-      {/* Box Insight Dinamis */}
-      <p className="text-[10px] text-slate-600 leading-relaxed bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
-        <span className="font-bold text-blue-700">💡 Insight:</span> {insightText}
-      </p>
-    </div>
-  );
-};;
