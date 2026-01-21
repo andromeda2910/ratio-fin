@@ -139,11 +139,11 @@ export default function App() {
               <InputField label="Nama Perusahaan" info="Nama entitas bisnis yang dianalisis." value={formData.namaPT} onChange={(v) => handleInputChange('namaPT', v)} error={errors.namaPT} placeholder="PT Contoh Indonesia" />
             </div>
             <InputField label="Tahun" isYear={true} info="Tahun periode laporan." value={formData.tahun} onChange={(v) => handleInputChange('tahun', v)} />
-            <InputField label="Laba Bersih" info="Keuntungan bersih setelah pajak." value={formData.labaBersih} onChange={(v) => handleInputChange('labaBersih', v)} error={errors.labaBersih} />
-            <InputField label="Aset Lancar" info="Harta liquid (Kas, Bank, Piutang)." value={formData.asetLancar} onChange={(v) => handleInputChange('asetLancar', v)} error={errors.asetLancar} />
-            <InputField label="Utang Lancar" info="Kewajiban jangka pendek (< 1th)." value={formData.utangLancar} onChange={(v) => handleInputChange('utangLancar', v)} error={errors.utangLancar} />
-            <InputField label="Pendapatan" info="Total omzet penjualan." value={formData.pendapatan} onChange={(v) => handleInputChange('pendapatan', v)} error={errors.pendapatan} />
-            <InputField label="Total Ekuitas" info="Modal bersih pemilik." value={formData.totalEkuitas} onChange={(v) => handleInputChange('totalEkuitas', v)} error={errors.totalEkuitas} />
+            <InputField label="Laba Bersih (dalam Rp.)" info="Keuntungan bersih setelah pajak." value={formData.labaBersih} onChange={(v) => handleInputChange('labaBersih', v)} error={errors.labaBersih} />
+            <InputField label="Aset Lancar (dalam Rp.)" info="Harta liquid (Kas, Bank, Piutang)." value={formData.asetLancar} onChange={(v) => handleInputChange('asetLancar', v)} error={errors.asetLancar} />
+            <InputField label="Utang Lancar (dalam Rp.)" info="Kewajiban jangka pendek (< 1th)." value={formData.utangLancar} onChange={(v) => handleInputChange('utangLancar', v)} error={errors.utangLancar} />
+            <InputField label="Pendapatan (dalam Rp.)" info="Total omzet penjualan." value={formData.pendapatan} onChange={(v) => handleInputChange('pendapatan', v)} error={errors.pendapatan} />
+            <InputField label="Total Ekuitas (dalam Rp.)" info="Modal bersih pemilik." value={formData.totalEkuitas} onChange={(v) => handleInputChange('totalEkuitas', v)} error={errors.totalEkuitas} />
           </div>
 
           <button 
