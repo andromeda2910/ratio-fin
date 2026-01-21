@@ -1,33 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2, AlertTriangle, RotateCcw, Download } from 'lucide-react';
 import { calculateRatios, getStatus, formatRibuan, getInsight, calculateHealthScore } from './calculations';
-// IMPORT LIBRARY PDF
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
 const InfoTooltip = ({ info }) => {
   const [isOpen, setIsOpen] = useState(false);
   const tooltipRef = useRef(null);
-
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (tooltipRef.current && !tooltipRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
+    const handleClickOutside = (e) => { if (tooltipRef.current && !tooltipRef.current.contains(e.target)) setIsOpen(false); };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-
   return (
     <div className="relative flex items-center" ref={tooltipRef}>
-      <button type="button" onClick={() => setIsOpen(!isOpen)} className="text-slate-300 hover:text-blue-500 transition-colors focus:outline-none">
-        <Info size={14} />
-      </button>
+      <button type="button" onClick={() => setIsOpen(!isOpen)} className="text-slate-300 hover:text-blue-500 focus:outline-none"><Info size={14} /></button>
       {isOpen && (
-        <div className="absolute bottom-full left-0 mb-2 w-56 p-3 bg-slate-800 text-white text-[10px] rounded-xl shadow-2xl z-100 leading-relaxed border border-slate-700 backdrop-blur-md animate-in fade-in zoom-in duration-200">
-          {info}
-          <div className="absolute top-full left-2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
+        <div className="absolute bottom-full left-0 mb-2 w-56 p-3 bg-slate-800 text-white text-[10px] rounded-xl shadow-2xl z-50 border border-slate-700 backdrop-blur-md animate-in fade-in zoom-in duration-200">
+          {info}<div className="absolute top-full left-2 -mt-1 border-4 border-transparent border-t-slate-800"></div>
         </div>
       )}
     </div>
@@ -41,49 +31,28 @@ const InputField = ({ label, info, value, onChange, type = "text", error, isYear
       <InfoTooltip info={info} />
     </div>
     <div className="relative flex items-center">
-      {isYear && (
-        <button onClick={() => onChange(String(Number(value) - 1))} className="absolute left-2 p-2 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-all z-10">
-          <Minus size={16} />
-        </button>
-      )}
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={`w-full p-4 ${isYear ? 'text-center px-10' : ''} border-2 ${error ? 'border-red-100 bg-red-50/50' : 'border-slate-100 bg-slate-50/50'} rounded-2xl outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 font-bold text-slate-700 transition-all text-sm md:text-base`}
-        placeholder={placeholder || (isYear ? "2026" : "0")}
-      />
-      {isYear && (
-        <button onClick={() => onChange(String(Number(value) + 1))} className="absolute right-2 p-2 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-all z-10">
-          <Plus size={16} />
-        </button>
-      )}
+      {isYear && <button onClick={() => onChange(String(Number(value) - 1))} className="absolute left-2 p-2 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-all z-10"><Minus size={16} /></button>}
+      <input type={type} value={value} onChange={(e) => onChange(e.target.value)} className={`w-full p-4 ${isYear ? 'text-center px-10' : ''} border-2 ${error ? 'border-red-100 bg-red-50/50' : 'border-slate-100 bg-slate-50/50'} rounded-2xl outline-none focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 font-bold text-slate-700 transition-all text-sm md:text-base`} placeholder={placeholder || (isYear ? "2026" : "0")} />
+      {isYear && <button onClick={() => onChange(String(Number(value) + 1))} className="absolute right-2 p-2 hover:bg-white rounded-lg text-slate-400 hover:text-blue-600 transition-all z-10"><Plus size={16} /></button>}
     </div>
-    {error && <span className="text-[10px] text-red-500 font-bold flex items-center gap-1 mt-1 animate-in slide-in-from-left-2"><AlertCircle size={10}/> {error}</span>}
+    {error && <span className="text-[10px] text-red-500 font-bold flex items-center gap-1 mt-1"><AlertCircle size={10}/> {error}</span>}
   </div>
 );
 
 const ResultRow = ({ label, type, value, suffix, status }) => {
   const isPositive = status === 'Sehat' || status === 'Efisien' || status === 'Sangat Baik';
-  const insightText = getInsight(type, value);
-
   return (
     <div className="p-4 md:p-5 bg-white rounded-2xl border border-slate-100">
       <div className="flex justify-between items-start mb-3">
         <div>
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-          <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">
-            {value}<span className="text-base text-slate-400 ml-0.5">{suffix}</span>
-          </p>
+          <p className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter">{value}<span className="text-base text-slate-400 ml-0.5">{suffix}</span></p>
         </div>
         <div className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase ${isPositive ? 'bg-emerald-50 text-emerald-600 border border-emerald-100' : 'bg-amber-50 text-amber-600 border border-amber-100'}`}>
-          {isPositive ? <CheckCircle2 size={10}/> : <AlertTriangle size={10}/>}
-          {status}
+          {isPositive ? <CheckCircle2 size={10}/> : <AlertTriangle size={10}/>} {status}
         </div>
       </div>
-      <p className="text-[10px] text-slate-600 leading-relaxed bg-blue-50/50 p-3 rounded-xl border border-blue-100/50">
-        <span className="font-bold text-blue-700">💡 Insight:</span> {insightText}
-      </p>
+      <p className="text-[10px] text-slate-600 leading-relaxed bg-blue-50/50 p-3 rounded-xl border border-blue-100/50"><span className="font-bold text-blue-700">💡 Insight:</span> {getInsight(type, value)}</p>
     </div>
   );
 };
@@ -94,113 +63,78 @@ export default function App() {
   const [results, setResults] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // FUNGSI DOWNLOAD PDF
+  // FUNGSI PDF TANPA 'err' UNUSED
   const downloadPDF = async () => {
-    console.log("Tombol download diklik!"); // Ini untuk ngetes di Console browser
+    const reportElement = document.getElementById('report-to-print');
+    if (!reportElement) return alert("Konten tidak ditemukan!");
     try {
-      const element = document.getElementById('report-content');
-      if (!element) {
-        alert("Waduh, konten laporan tidak ditemukan!");
-        return;
-      }
-      
-      const canvas = await html2canvas(element, { 
-        scale: 2,
-        useCORS: true,
-        logging: true 
-      });
-      
+      const canvas = await html2canvas(reportElement, { scale: 2, useCORS: true });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Laporan_RatioFin_${formData.namaPT}.pdf`);
-      console.log("PDF berhasil dibuat!");
-    } catch (error) {
-      console.error("Gagal cetak PDF:", error);
-      alert("Gagal mendownload PDF. Coba cek terminal!");
+      pdf.save(`RatioFin_${formData.namaPT}_${formData.tahun}.pdf`);
+    } catch { 
+      alert("Gagal membuat PDF. Coba lagi!"); 
     }
   };
 
-  const handleReset = () => {
-    setFormData({ namaPT: '', tahun: '2026', labaBersih: '', asetLancar: '', utangLancar: '', pendapatan: '', totalEkuitas: '' });
-    setErrors({});
-    setResults(null);
-  };
-
   const handleInputChange = (field, val) => {
-    const formatted = (field === 'namaPT' || field === 'tahun') ? val : formatRibuan(val);
-    setFormData({ ...formData, [field]: formatted });
+    setFormData({ ...formData, [field]: (field === 'namaPT' || field === 'tahun') ? val : formatRibuan(val) });
     if (errors[field]) setErrors({ ...errors, [field]: null });
   };
 
   const validate = () => {
     let newErrors = {};
-    const fields = ['namaPT', 'labaBersih', 'asetLancar', 'utangLancar', 'pendapatan', 'totalEkuitas'];
-    fields.forEach(f => { if (!formData[f]) newErrors[f] = "Wajib diisi"; });
+    ['namaPT', 'labaBersih', 'asetLancar', 'utangLancar', 'pendapatan', 'totalEkuitas'].forEach(f => { if (!formData[f]) newErrors[f] = "Wajib"; });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] py-8 md:py-12 px-4 font-sans selection:bg-blue-100">
+    <div className="min-h-screen bg-[#F8FAFC] py-8 md:py-12 px-4 selection:bg-blue-100">
       <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8 px-2">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-linear-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200"><Calculator size={20} /></div>
-            <div>
-              <h1 className="text-lg font-black text-slate-800 tracking-tight">RatioFin</h1>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Financial Analyzer</p>
-            </div>
-          </div>
+        <div className="flex items-center gap-3 mb-8 px-2">
+          {/* MENGGUNAKAN bg-linear SESUAI SARAN */}
+          <div className="w-10 h-10 bg-linear-to-tr from-blue-600 to-indigo-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200"><Calculator size={20} /></div>
+          <div><h1 className="text-lg font-black text-slate-800 tracking-tight">RatioFin</h1><p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Financial Analyzer</p></div>
         </div>
 
-        <div className="bg-white p-6 md:p-10 rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-slate-50 relative overflow-hidden">
-          <div className="flex justify-between items-start mb-8">
-            <h2 className="text-xl md:text-2xl font-black text-slate-800 tracking-tight">Input Data</h2>
-            <button onClick={handleReset} className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] font-black text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all uppercase tracking-widest border border-transparent hover:border-red-100"><RotateCcw size={12} /> Reset</button>
-          </div>
+        <div className="bg-white p-6 md:p-10 rounded-4xl shadow-xl border border-slate-50">
+          <div className="flex justify-between items-center mb-8"><h2 className="text-xl font-black text-slate-800">Input Data</h2><button onClick={() => { setFormData({ namaPT: '', tahun: '2026', labaBersih: '', asetLancar: '', utangLancar: '', pendapatan: '', totalEkuitas: '' }); setResults(null); }} className="text-[10px] font-black text-slate-400 hover:text-red-500 uppercase flex items-center gap-1"><RotateCcw size={12}/> Reset</button></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-            <div className="md:col-span-2"><InputField label="Nama Perusahaan" info="Nama entitas bisnis." value={formData.namaPT} onChange={(v) => handleInputChange('namaPT', v)} error={errors.namaPT} placeholder="PT Unilever Indonesia" /></div>
-            <InputField label="Tahun" isYear={true} info="Tahun periode." value={formData.tahun} onChange={(v) => handleInputChange('tahun', v)} />
-            <InputField label="Laba Bersih (Rp.)" info="Laba bersih setelah pajak." value={formData.labaBersih} onChange={(v) => handleInputChange('labaBersih', v)} error={errors.labaBersih} />
+            <div className="md:col-span-2"><InputField label="Nama Perusahaan" info="Nama bisnis." value={formData.namaPT} onChange={(v) => handleInputChange('namaPT', v)} error={errors.namaPT} placeholder="Contoh: PT Unilever Indonesia" /></div>
+            <InputField label="Tahun" isYear={true} info="Tahun laporan." value={formData.tahun} onChange={(v) => handleInputChange('tahun', v)} />
+            <InputField label="Laba Bersih (Rp.)" info="Laba bersih." value={formData.labaBersih} onChange={(v) => handleInputChange('labaBersih', v)} error={errors.labaBersih} />
             <InputField label="Aset Lancar (Rp.)" info="Harta liquid." value={formData.asetLancar} onChange={(v) => handleInputChange('asetLancar', v)} error={errors.asetLancar} />
-            <InputField label="Utang Lancar (Rp.)" info="Kewajiban < 1th." value={formData.utangLancar} onChange={(v) => handleInputChange('utangLancar', v)} error={errors.utangLancar} />
+            <InputField label="Utang Lancar (Rp.)" info="Kewajiban jangka pendek." value={formData.utangLancar} onChange={(v) => handleInputChange('utangLancar', v)} error={errors.utangLancar} />
             <InputField label="Pendapatan (Rp.)" info="Total omzet." value={formData.pendapatan} onChange={(v) => handleInputChange('pendapatan', v)} error={errors.pendapatan} />
             <InputField label="Total Ekuitas (Rp.)" info="Modal bersih." value={formData.totalEkuitas} onChange={(v) => handleInputChange('totalEkuitas', v)} error={errors.totalEkuitas} />
           </div>
-          <button onClick={() => { if(validate()) { setResults(calculateRatios(formData)); setShowModal(true); } }} className="w-full py-4 md:py-5 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-black rounded-2xl hover:scale-[1.01] active:scale-95 shadow-xl shadow-blue-100 mt-4 flex items-center justify-center gap-3 transition-all duration-300 tracking-wider text-xs md:text-sm">
-            <TrendingUp size={18} /> ANALISIS SEKARANG
-          </button>
+          {/* MENGGUNAKAN bg-linear SESUAI SARAN */}
+          <button onClick={() => { if(validate()) { setResults(calculateRatios(formData)); setShowModal(true); } }} className="w-full py-5 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-black rounded-2xl shadow-xl shadow-blue-100 mt-4 flex items-center justify-center gap-3 uppercase text-xs"> <TrendingUp size={18} /> Analisis Sekarang </button>
         </div>
       </div>
 
-      {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-100 animate-in fade-in duration-300 overflow-y-auto">
+      {showModal && results && (
+        /* MENGGUNAKAN z-100 SESUAI SARAN */
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-100 overflow-y-auto">
           <div className="bg-white w-full max-w-lg rounded-4xl shadow-2xl overflow-hidden my-auto">
-            {/* AREA YANG DI-PDF-KAN */}
-            <div id="report-content" className="bg-white">
+            <div id="report-to-print" className="bg-white">
               <div className="bg-slate-900 p-6 md:p-8 text-white flex justify-between items-center">
-                <div>
-                  <h3 className="text-xl font-black tracking-tight">Hasil Laporan</h3>
-                  <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">{formData.namaPT} — {formData.tahun}</p>
-                </div>
-                <button onClick={() => setShowModal(false)} className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors"><X size={20} /></button>
+                <div><h3 className="text-xl font-black tracking-tight">Hasil Laporan</h3><p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-1">{formData.namaPT} — {formData.tahun}</p></div>
+                <button onClick={() => setShowModal(false)} className="p-2 bg-white/10 rounded-full"><X size={20} /></button>
               </div>
-              
-              <div className="p-6 md:p-8 space-y-4 bg-white">
+              <div className="p-6 md:p-8 space-y-4">
                 {(() => {
                   const scoreValue = calculateHealthScore(results);
-                  const getScoreColor = (s) => s >= 80 ? "text-emerald-500" : s >= 50 ? "text-amber-500" : "text-red-500";
+                  const color = scoreValue >= 80 ? "text-emerald-500" : scoreValue >= 50 ? "text-amber-500" : "text-red-500";
                   return (
                     <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 text-center mb-6">
-                      <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Skor Kesehatan Finansial</h4>
-                      <div className={`text-6xl font-black tracking-tighter mb-2 ${getScoreColor(scoreValue)}`}>{scoreValue}<span className="text-xl text-slate-300">/100</span></div>
-                      <p className="text-[11px] text-slate-500 font-medium px-4 leading-relaxed">
-                        {scoreValue >= 80 ? "🔥 Kondisi sangat prima! Keuangan perusahaan sangat sehat dan stabil." : scoreValue >= 50 ? "⚠️ Kondisi cukup stabil, namun beberapa rasio perlu diperhatikan." : "🚨 Perhatian! Perusahaan berada dalam risiko finansial serius."}
-                      </p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Skor Kesehatan Finansial</p>
+                      <div className={`text-6xl font-black ${color}`}>{scoreValue}<span className="text-xl text-slate-300">/100</span></div>
+                      <p className="text-[11px] text-slate-500 mt-2 px-4">{scoreValue >= 80 ? "🔥 Kondisi sangat prima!" : scoreValue >= 50 ? "⚠️ Kondisi cukup stabil." : "🚨 Perhatian khusus diperlukan!"}</p>
                     </div>
                   );
                 })()}
@@ -209,13 +143,9 @@ export default function App() {
                 <ResultRow label="Return on Equity" type="roe" value={results.roe} suffix="%" status={getStatus('roe', results.roe)} />
               </div>
             </div>
-
-            {/* TOMBOL DOWNLOAD */}
-            <div className="p-6 md:p-8 pt-0 space-y-3 bg-white">
-              <button onClick={downloadPDF} className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 transition-all flex items-center justify-center gap-3 uppercase text-[10px] tracking-widest shadow-lg shadow-blue-100">
-                <Download size={16} /> Download Laporan (PDF)
-              </button>
-              <button onClick={() => setShowModal(false)} className="w-full py-4 bg-slate-50 text-slate-500 font-bold rounded-2xl hover:bg-slate-100 transition-all border border-slate-100 uppercase text-[10px] tracking-widest">Tutup</button>
+            <div className="p-6 md:p-8 pt-0 space-y-3">
+              <button onClick={downloadPDF} className="w-full py-4 bg-blue-600 text-white font-black rounded-2xl flex items-center justify-center gap-3 uppercase text-[10px] tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all"> <Download size={16} /> Download Laporan (PDF) </button>
+              <button onClick={() => setShowModal(false)} className="w-full py-4 bg-slate-50 text-slate-500 font-bold rounded-2xl border border-slate-100 uppercase text-[10px] tracking-widest">Tutup</button>
             </div>
           </div>
         </div>
