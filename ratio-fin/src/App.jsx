@@ -6,6 +6,18 @@ import html2pdf from 'html2pdf.js/dist/html2pdf.bundle.min.js';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
 
+// CSS tambahan untuk memastikan hasil PDF bersih dan tidak terpotong
+const pdfStyles = `
+  .pdf-capture-mode {
+    width: 700px !important;
+    max-width: none !important;
+  }
+  .pdf-hide {
+    display: none !important;
+  }
+`;
+
+
 const InfoTooltip = ({ info }) => {
   const [isOpen, setIsOpen] = useState(false);
   const tooltipRef = useRef(null);
@@ -103,8 +115,11 @@ export default function App() {
         return;
       }
 
+      // Paksa lebar tertentu agar tidak terpotong oleh layar kecil (responsive)
+      element.classList.add('pdf-capture-mode');
+
       const opt = {
-        margin: [10, 10, 10, 10],
+        margin: [5, 5, 5, 5],
         filename: `Laporan-RatioFin-${formData.namaPT || 'Perusahaan'}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
@@ -112,12 +127,17 @@ export default function App() {
           useCORS: true,
           logging: false,
           letterRendering: true,
-          windowWidth: element.clientWidth
+          scrollY: 0,
+          scrollX: 0,
+          windowWidth: 800 // Memberikan area kerja yang cukup luas dalam canvas
         },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
 
       await html2pdf().set(opt).from(element).save();
+
+      // Kembalikan ke normal
+      element.classList.remove('pdf-capture-mode');
     } catch (error) {
       console.error("Error generating PDF:", error);
       // Fallback ke window.print jika html2pdf gagal
@@ -140,6 +160,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 py-10 px-4">
+      <style>{pdfStyles}</style>
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center gap-3 mb-8 px-2">
           <div style={{ backgroundColor: '#2563EB' }} className="w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
@@ -196,7 +217,7 @@ export default function App() {
                     </div>
                     <span className="font-black tracking-tighter text-lg">RatioFin</span>
                   </div>
-                  <button onClick={() => setShowModal(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors hide-on-print"><X size={20} /></button>
+                  <button onClick={() => setShowModal(false)} className="p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors pdf-hide"><X size={20} /></button>
                 </div>
 
                 <div className="space-y-1">
