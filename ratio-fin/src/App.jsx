@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2, AlertTriangle, RotateCcw, Download, Calendar, Building2 } from 'lucide-react';
 // Pastikan semua fungsi ini ada di file calculations.js kamu
 import { calculateRatios, getStatus, formatRibuan, getInsight, calculateHealthScore } from './calculations';
-import html2pdf from 'html2pdf.js';
+import html2pdf from 'html2pdf.js/dist/html2pdf.bundle.min.js';
 
 
 const InfoTooltip = ({ info }) => {
@@ -86,17 +86,36 @@ export default function App() {
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
   };
 
-  const downloadPDF = () => {
-    const element = document.getElementById('report-to-print');
-    const opt = {
-      margin: [10, 10, 10, 10],
-      filename: `Laporan-RatioFin-${formData.namaPT || 'Perusahaan'}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+  const downloadPDF = async () => {
+    try {
+      const element = document.getElementById('report-to-print');
+      if (!element) {
+        console.error("Elemen laporan tidak ditemukan");
+        return;
+      }
 
-    html2pdf().set(opt).from(element).save();
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `Laporan-RatioFin-${formData.namaPT || 'Perusahaan'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          letterRendering: true,
+          windowWidth: element.clientWidth
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      // Fallback ke window.print jika html2pdf gagal
+      if (confirm("Gagal membuat PDF otomatis. Ingin mencoba menggunakan fitur cetak browser?")) {
+        window.print();
+      }
+    }
   };
 
   const validate = () => {
