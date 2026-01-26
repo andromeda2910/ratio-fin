@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2, AlertTriangle, RotateCcw, Download, Calendar, Building2 } from 'lucide-react';
-// Pastikan semua fungsi ini ada di file calculations.js kamu
 import { calculateRatios, getStatus, formatRibuan, getInsight, calculateHealthScore } from './calculations';
 import html2pdf from 'html2pdf.js/dist/html2pdf.bundle.min.js';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend } from 'recharts';
+import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2, AlertTriangle, RotateCcw, Download, Calendar, Building2, Trash2, PlusCircle } from 'lucide-react';
 
 
 // CSS tambahan untuk memastikan hasil PDF bersih dan tidak terpotong
@@ -85,19 +83,46 @@ const ResultRow = ({ label, type, value, suffix, status }) => {
 };
 
 export default function App() {
-  const [formData, setFormData] = useState({
-    namaPT: '', tahun: '2026', labaBersih: '', asetLancar: '', utangLancar: '', pendapatan: '', totalEkuitas: ''
-  });
+  const [namaPT, setNamaPT] = useState('');
+  const [yearsData, setYearsData] = useState([
+    { id: Date.now(), tahun: '2026', labaBersih: '', asetLancar: '', utangLancar: '', pendapatan: '', totalEkuitas: '' }
+  ]);
   const [errors, setErrors] = useState({});
   const [results, setResults] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Fungsi input dengan format ribuan otomatis
-  const handleInputChange = (field, val) => {
-    const formattedValue = (field === 'namaPT' || field === 'tahun') ? val : formatRibuan(val);
-    setFormData(prev => ({ ...prev, [field]: formattedValue }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }));
+  const handleInputChange = (id, field, val) => {
+    setYearsData(prev => prev.map(year => {
+      if (year.id === id) {
+        const formattedValue = (field === 'tahun') ? val : formatRibuan(val);
+        return { ...year, [field]: formattedValue };
+      }
+      return year;
+    }));
+
+    // Clear error for this specific field
+    const errorKey = `${id}-${field}`;
+    if (errors[errorKey]) {
+      const newErrors = { ...errors };
+      delete newErrors[errorKey];
+      setErrors(newErrors);
+    }
+  };
+
+  const addYear = () => {
+    if (yearsData.length >= 3) return;
+    const lastYear = yearsData[yearsData.length - 1].tahun;
+    setYearsData(prev => [
+      ...prev,
+      { id: Date.now(), tahun: String(Number(lastYear) - 1), labaBersih: '', asetLancar: '', utangLancar: '', pendapatan: '', totalEkuitas: '' }
+    ]);
+  };
+
+  const removeYear = (id) => {
+    if (yearsData.length <= 1) return;
+    setYearsData(prev => prev.filter(y => y.id !== id));
   };
 
   const downloadPDF = async () => {
@@ -120,7 +145,7 @@ export default function App() {
 
       const opt = {
         margin: [5, 5, 5, 5],
-        filename: `Laporan-RatioFin-${formData.namaPT || 'Perusahaan'}.pdf`,
+        filename: `Laporan-RatioFin-${namaPT || 'Perusahaan'}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: {
           scale: 2,
@@ -151,9 +176,14 @@ export default function App() {
 
   const validate = () => {
     let newErrors = {};
-    ['namaPT', 'labaBersih', 'asetLancar', 'utangLancar', 'pendapatan', 'totalEkuitas'].forEach(f => {
-      if (!formData[f]) newErrors[f] = "Wajib diisi";
+    if (!namaPT) newErrors['namaPT'] = "Wajib diisi";
+
+    yearsData.forEach(year => {
+      ['labaBersih', 'asetLancar', 'utangLancar', 'pendapatan', 'totalEkuitas'].forEach(f => {
+        if (!year[f]) newErrors[`${year.id}-${f}`] = "Wajib diisi";
+      });
     });
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -174,29 +204,62 @@ export default function App() {
 
         <div className="bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-slate-100">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-xl font-black text-slate-800">Input Data</h2>
+            <h2 className="text-xl font-black text-slate-800">Data Perusahaan</h2>
             <button
-              onClick={() => { setFormData({ namaPT: '', tahun: '2026', labaBersih: '', asetLancar: '', utangLancar: '', pendapatan: '', totalEkuitas: '' }); setResults(null); }}
+              onClick={() => { setNamaPT(''); setYearsData([{ id: Date.now(), tahun: '2026', labaBersih: '', asetLancar: '', utangLancar: '', pendapatan: '', totalEkuitas: '' }]); setResults(null); }}
               className="text-[10px] font-black text-slate-400 hover:text-red-500 uppercase flex items-center gap-1 transition-colors"
             >
               <RotateCcw size={12} /> Reset
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-            <div className="md:col-span-2">
-              <InputField label="Nama Perusahaan" info="Nama bisnis Anda." value={formData.namaPT} onChange={(v) => handleInputChange('namaPT', v)} error={errors.namaPT} placeholder="Contoh: PT Unilever Indonesia" />
-            </div>
-            <InputField label="Tahun Laporan" isYear={true} info="Tahun periode keuangan." value={formData.tahun} onChange={(v) => handleInputChange('tahun', v)} />
-            <InputField label="Laba Bersih (Rp)" info="Total keuntungan setelah pajak." value={formData.labaBersih} onChange={(v) => handleInputChange('labaBersih', v)} error={errors.labaBersih} />
-            <InputField label="Aset Lancar (Rp)" info="Harta liquid (Kas, piutang, dll)." value={formData.asetLancar} onChange={(v) => handleInputChange('asetLancar', v)} error={errors.asetLancar} />
-            <InputField label="Utang Lancar (Rp)" info="Kewajiban jangka pendek." value={formData.utangLancar} onChange={(v) => handleInputChange('utangLancar', v)} error={errors.utangLancar} />
-            <InputField label="Pendapatan (Rp)" info="Total omzet penjualan." value={formData.pendapatan} onChange={(v) => handleInputChange('pendapatan', v)} error={errors.pendapatan} />
-            <InputField label="Total Ekuitas (Rp)" info="Modal bersih pemilik." value={formData.totalEkuitas} onChange={(v) => handleInputChange('totalEkuitas', v)} error={errors.totalEkuitas} />
+          <div className="mb-8">
+            <InputField label="Nama Perusahaan" info="Nama bisnis Anda." value={namaPT} onChange={(v) => { setNamaPT(v); if (errors.namaPT) setErrors(prev => { const n = { ...prev }; delete n.namaPT; return n; }); }} error={errors.namaPT} placeholder="Contoh: PT Unilever Indonesia" />
           </div>
 
+          <div className="space-y-12">
+            {yearsData.map((year, index) => (
+              <div key={year.id} className="relative pt-8 border-t border-slate-100">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="text-sm font-black text-blue-600 uppercase tracking-widest flex items-center gap-2">
+                    <Calendar size={16} /> Data Tahun ke-{index + 1}
+                  </h3>
+                  {yearsData.length > 1 && (
+                    <button onClick={() => removeYear(year.id)} className="p-2 text-slate-300 hover:text-red-500 transition-colors">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                  <InputField label="Tahun Laporan" isYear={true} info="Tahun periode keuangan." value={year.tahun} onChange={(v) => handleInputChange(year.id, 'tahun', v)} />
+                  <InputField label="Laba Bersih (Rp)" info="Total keuntungan setelah pajak." value={year.labaBersih} onChange={(v) => handleInputChange(year.id, 'labaBersih', v)} error={errors[`${year.id}-labaBersih`]} />
+                  <InputField label="Aset Lancar (Rp)" info="Harta liquid (Kas, piutang, dll)." value={year.asetLancar} onChange={(v) => handleInputChange(year.id, 'asetLancar', v)} error={errors[`${year.id}-asetLancar`]} />
+                  <InputField label="Utang Lancar (Rp)" info="Kewajiban jangka pendek." value={year.utangLancar} onChange={(v) => handleInputChange(year.id, 'utangLancar', v)} error={errors[`${year.id}-utangLancar`]} />
+                  <InputField label="Pendapatan (Rp)" info="Total omzet penjualan." value={year.pendapatan} onChange={(v) => handleInputChange(year.id, 'pendapatan', v)} error={errors[`${year.id}-pendapatan`]} />
+                  <InputField label="Total Ekuitas (Rp)" info="Modal bersih pemilik." value={year.totalEkuitas} onChange={(v) => handleInputChange(year.id, 'totalEkuitas', v)} error={errors[`${year.id}-totalEkuitas`]} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {yearsData.length < 3 && (
+            <button
+              onClick={addYear}
+              className="mt-6 w-full py-4 border-2 border-dashed border-slate-200 rounded-2xl text-slate-400 hover:border-blue-400 hover:text-blue-500 flex items-center justify-center gap-2 text-xs font-bold transition-all mb-4"
+            >
+              <PlusCircle size={16} /> Tambah Tahun Perbandingan (Maks 3)
+            </button>
+          )}
+
           <button
-            onClick={() => { if (validate()) { setResults(calculateRatios(formData)); setShowModal(true); } }}
+            onClick={() => {
+              if (validate()) {
+                const calculated = yearsData.map(y => ({ ...calculateRatios(y), tahun: y.tahun }));
+                setResults(calculated.sort((a, b) => Number(b.tahun) - Number(a.tahun)));
+                setShowModal(true);
+              }
+            }}
             style={{ backgroundColor: '#2563EB' }}
             className="w-full py-5 text-white font-black rounded-2xl shadow-xl shadow-blue-100 mt-4 flex items-center justify-center gap-3 uppercase text-xs hover:bg-blue-700 transition-all"
           >
@@ -222,56 +285,81 @@ export default function App() {
 
                 <div className="space-y-1">
                   <h3 className="text-2xl font-black tracking-tight flex items-center gap-2">
-                    <Building2 size={24} className="text-blue-400" /> {formData.namaPT || "Laporan Keuangan"}
+                    <Building2 size={24} className="text-blue-400" /> {namaPT || "Laporan Keuangan"}
                   </h3>
                   <div className="flex items-center gap-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-2">
-                    <span className="flex items-center gap-1.5"><Calendar size={12} /> {formData.tahun}</span>
+                    <span className="flex items-center gap-1.5"><Calendar size={12} /> {results.length} Tahun Analisis</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
-                    <span>Analisis Rasio Finansial</span>
+                    <span>Tren Performa Finansial</span>
                   </div>
                 </div>
               </div>
 
               <div className="p-6 md:p-8">
-                {(() => {
-                  const scoreValue = calculateHealthScore(results);
-                  const color = scoreValue >= 80 ? "#10B981" : scoreValue >= 50 ? "#F59E0B" : "#EF4444";
-                  return (
-                    <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 text-center mb-6 shadow-inner">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Skor Kesehatan Finansial</p>
-                      <div style={{ color: color }} className="text-6xl font-black">{scoreValue}<span className="text-xl text-slate-300">/100</span></div>
-                      <p className="text-[11px] text-slate-500 mt-2 px-4 italic">{scoreValue >= 80 ? "🔥 Kondisi sangat prima!" : scoreValue >= 50 ? "⚠️ Kondisi cukup stabil." : "🚨 Perhatian khusus diperlukan!"}</p>
+                {/* Ringkasan Tahun Terbaru */}
+                <div className="mb-8">
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="w-1.5 h-6 bg-blue-600 rounded-full"></div>
+                    <h4 className="text-xs font-black text-slate-800 uppercase tracking-widest">Kondisi Terkini ({results[0].tahun})</h4>
+                  </div>
+                  {(() => {
+                    const scoreValue = calculateHealthScore(results[0]);
+                    const color = scoreValue >= 80 ? "#10B981" : scoreValue >= 50 ? "#F59E0B" : "#EF4444";
+                    return (
+                      <div className="bg-slate-50 p-6 rounded-3xl border border-slate-100 text-center mb-6 shadow-inner">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Skor Kesehatan Finansial</p>
+                        <div style={{ color: color }} className="text-6xl font-black">{scoreValue}<span className="text-xl text-slate-300">/100</span></div>
+                        <p className="text-[11px] text-slate-500 mt-2 px-4 italic">{scoreValue >= 80 ? "🔥 Kondisi sangat prima!" : scoreValue >= 50 ? "⚠️ Kondisi cukup stabil." : "🚨 Perhatian khusus diperlukan!"}</p>
+                      </div>
+                    );
+                  })()}
+
+                  <div className="space-y-4">
+                    <ResultRow label="Current Ratio" type="currentRatio" value={results[0].currentRatio} suffix="x" status={getStatus('currentRatio', results[0].currentRatio)} />
+                    <ResultRow label="Net Profit Margin" type="npm" value={results[0].npm} suffix="%" status={getStatus('npm', results[0].npm)} />
+                    <ResultRow label="Return on Equity" type="roe" value={results[0].roe} suffix="%" status={getStatus('roe', results[0].roe)} />
+                  </div>
+                </div>
+
+                {/* Tren Grafik (Muncul jika > 1 tahun) */}
+                {results.length > 1 && (
+                  <div className="mb-8 p-6 bg-slate-900 rounded-3xl text-white shadow-xl">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Analisis Tren Performa (%)</p>
+                    <div className="h-48 w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={[...results].sort((a, b) => Number(a.tahun) - Number(b.tahun))}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#2d3748" vertical={false} />
+                          <XAxis dataKey="tahun" stroke="#718096" fontSize={10} axisLine={false} tickLine={false} />
+                          <YAxis stroke="#718096" fontSize={10} axisLine={false} tickLine={false} />
+                          <RechartsTooltip
+                            contentStyle={{ backgroundColor: '#1a202c', border: 'none', borderRadius: '12px', fontSize: '10px' }}
+                            itemStyle={{ color: '#fff' }}
+                          />
+                          <Legend iconType="circle" wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+                          <Line type="monotone" dataKey="npm" name="NPM (%)" stroke="#10B981" strokeWidth={3} dot={{ r: 4, fill: '#10B981' }} activeDot={{ r: 6 }} />
+                          <Line type="monotone" dataKey="roe" name="ROE (%)" stroke="#F59E0B" strokeWidth={3} dot={{ r: 4, fill: '#F59E0B' }} activeDot={{ r: 6 }} />
+                        </LineChart>
+                      </ResponsiveContainer>
                     </div>
-                  );
-                })()}
+                  </div>
+                )}
 
-                <ResultRow label="Current Ratio" type="currentRatio" value={results.currentRatio} suffix="x" status={getStatus('currentRatio', results.currentRatio)} />
-                <ResultRow label="Net Profit Margin" type="npm" value={results.npm} suffix="%" status={getStatus('npm', results.npm)} />
-                <ResultRow label="Return on Equity" type="roe" value={results.roe} suffix="%" status={getStatus('roe', results.roe)} />
-
-                {/* Radar Chart Visualisasi */}
-                <div className="mt-8 bg-slate-50 p-4 rounded-3xl border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-4">Visualisasi Kekuatan Finansial</p>
-                  <div className="h-64 w-full">
+                {/* Radar Chart Visualisasi (Tahun Terbaru) */}
+                <div className="bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-4">Radar Kekuatan ({results[0].tahun})</p>
+                  <div className="h-56 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
-                        { subject: 'Likuiditas', A: Math.min(100, parseFloat(results.currentRatio) * 50), fullMark: 100 },
-                        { subject: 'Profitabilitas', A: Math.min(100, parseFloat(results.npm) * 5), fullMark: 100 },
-                        { subject: 'Efisiensi Modal', A: Math.min(100, parseFloat(results.roe) * 6.6), fullMark: 100 },
+                        { subject: 'Likuiditas', A: Math.min(100, parseFloat(results[0].currentRatio) * 50), fullMark: 100 },
+                        { subject: 'Profitabilitas', A: Math.min(100, parseFloat(results[0].npm) * 5), fullMark: 100 },
+                        { subject: 'Efisiensi Modal', A: Math.min(100, parseFloat(results[0].roe) * 6.6), fullMark: 100 },
                       ]}>
                         <PolarGrid stroke="#e2e8f0" />
-                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} />
-                        <Radar
-                          name="Kesehatan"
-                          dataKey="A"
-                          stroke="#2563eb"
-                          fill="#2563eb"
-                          fillOpacity={0.3}
-                        />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 9, fontWeight: 'bold' }} />
+                        <Radar name="Kesehatan" dataKey="A" stroke="#2563eb" fill="#2563eb" fillOpacity={0.3} />
                       </RadarChart>
                     </ResponsiveContainer>
                   </div>
-                  <p className="text-[9px] text-center text-slate-400 mt-2 italic">*Data dinormalisasi berdasarkan standar benchmark industri</p>
                 </div>
               </div>
             </div>
