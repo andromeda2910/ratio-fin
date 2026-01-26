@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from 'react';
 import { calculateRatios, getStatus, formatRibuan, getInsight, calculateHealthScore } from './calculations';
 import html2pdf from 'html2pdf.js/dist/html2pdf.bundle.min.js';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend } from 'recharts';
