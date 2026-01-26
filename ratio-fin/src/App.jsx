@@ -78,6 +78,7 @@ export default function App() {
   const [errors, setErrors] = useState({});
   const [results, setResults] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   // Fungsi input dengan format ribuan otomatis
   const handleInputChange = (field, val) => {
@@ -87,10 +88,17 @@ export default function App() {
   };
 
   const downloadPDF = async () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+
+    // Berikan jeda sedikit agar UI rendering (loading state) muncul dulu sebelum proses berat dimulai
+    await new Promise(resolve => setTimeout(resolve, 300));
+
     try {
       const element = document.getElementById('report-to-print');
       if (!element) {
         console.error("Elemen laporan tidak ditemukan");
+        setIsGenerating(false);
         return;
       }
 
@@ -115,6 +123,8 @@ export default function App() {
       if (confirm("Gagal membuat PDF otomatis. Ingin mencoba menggunakan fitur cetak browser?")) {
         window.print();
       }
+    } finally {
+      setIsGenerating(false);
     }
   };
 
@@ -222,10 +232,20 @@ export default function App() {
             <div className="p-6 md:p-8 pt-0 space-y-3">
               <button
                 onClick={downloadPDF}
-                style={{ backgroundColor: '#2563EB' }}
-                className="w-full py-4 text-white font-black rounded-2xl flex items-center justify-center gap-3 uppercase text-[10px] tracking-widest shadow-lg shadow-blue-100 hover:bg-blue-700 transition-all"
+                disabled={isGenerating}
+                style={{ backgroundColor: isGenerating ? '#94a3b8' : '#2563EB' }}
+                className={`w-full py-4 text-white font-black rounded-2xl flex items-center justify-center gap-3 uppercase text-[10px] tracking-widest shadow-lg ${isGenerating ? '' : 'shadow-blue-100 hover:bg-blue-700'} transition-all`}
               >
-                <Download size={16} /> Download Laporan (PDF)
+                {isGenerating ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Memproses PDF...
+                  </>
+                ) : (
+                  <>
+                    <Download size={16} /> Download Laporan (PDF)
+                  </>
+                )}
               </button>
               <button
                 onClick={() => setShowModal(false)}
