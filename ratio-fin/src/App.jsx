@@ -3,6 +3,7 @@ import { Info, Calculator, TrendingUp, X, AlertCircle, Plus, Minus, CheckCircle2
 // Pastikan semua fungsi ini ada di file calculations.js kamu
 import { calculateRatios, getStatus, formatRibuan, getInsight, calculateHealthScore } from './calculations';
 import html2pdf from 'html2pdf.js/dist/html2pdf.bundle.min.js';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts';
 
 
 const InfoTooltip = ({ info }) => {
@@ -226,6 +227,31 @@ export default function App() {
                 <ResultRow label="Current Ratio" type="currentRatio" value={results.currentRatio} suffix="x" status={getStatus('currentRatio', results.currentRatio)} />
                 <ResultRow label="Net Profit Margin" type="npm" value={results.npm} suffix="%" status={getStatus('npm', results.npm)} />
                 <ResultRow label="Return on Equity" type="roe" value={results.roe} suffix="%" status={getStatus('roe', results.roe)} />
+
+                {/* Radar Chart Visualisasi */}
+                <div className="mt-8 bg-slate-50 p-4 rounded-3xl border border-slate-100">
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center mb-4">Visualisasi Kekuatan Finansial</p>
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={[
+                        { subject: 'Likuiditas', A: Math.min(100, parseFloat(results.currentRatio) * 50), fullMark: 100 },
+                        { subject: 'Profitabilitas', A: Math.min(100, parseFloat(results.npm) * 5), fullMark: 100 },
+                        { subject: 'Efisiensi Modal', A: Math.min(100, parseFloat(results.roe) * 6.6), fullMark: 100 },
+                      ]}>
+                        <PolarGrid stroke="#e2e8f0" />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 'bold' }} />
+                        <Radar
+                          name="Kesehatan"
+                          dataKey="A"
+                          stroke="#2563eb"
+                          fill="#2563eb"
+                          fillOpacity={0.3}
+                        />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <p className="text-[9px] text-center text-slate-400 mt-2 italic">*Data dinormalisasi berdasarkan standar benchmark industri</p>
+                </div>
               </div>
             </div>
 
